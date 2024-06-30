@@ -273,9 +273,9 @@ def copy_playlist():
         privacy_status=args.privacy,
     )
 
-def unlike_songs_in_playlist():
+def unlike_songs():
     """
-    Unlike all songs found in a YTMusic playlist (default: Liked Music)
+    Unlike all songs in YTMusic (Liked Music playlist)
     """
     def parse_arguments():
         parser = ArgumentParser()
@@ -290,17 +290,11 @@ def unlike_songs_in_playlist():
             action="store_true",
             help="Do not add songs to destination playlist (default: False)",
         )
-        parser.add_argument(
-            "ytmusic_playlist_id",
-            type=str,
-            help="ID of the YTMusic playlist to copy to.  If this argument starts with a '+', it is asumed to be the playlist title rather than playlist ID, and if a playlist of that name is not found, it will be created (without the +).  Example: '+My Favorite Blues'.  NOTE: The shell will require you to quote the name if it contains spaces.",
-        )
         return parser.parse_args()
 
     args = parse_arguments()
 
-    backend.unlike_in_playlist(
-        args.ytmusic_playlist_id,
+    backend.unlike(
         args.dry_run,
         args.track_sleep
     )

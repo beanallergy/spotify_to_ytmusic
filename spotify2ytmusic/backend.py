@@ -376,6 +376,8 @@ def copier(
     duplicate_count = 0
     error_count = 0
 
+    print(f"DEBUG: (Copier) first track: {src_tracks[0]}")
+
     for src_track in src_tracks:
         print(f"Spotify:   {src_track.title} - {src_track.artist} - {src_track.album}")
 
@@ -428,53 +430,49 @@ def copier(
         f"Added {len(tracks_added_set)} tracks, encountered {duplicate_count} duplicates, {error_count} errors"
     )
 
-YTM_LIKED_SONGS_PL_ID = "LM"
-
-def unlike_in_playlist(
-    pl_id: Optional[str],
-    dry_run: bool = True,
+def unlike(
+    dry_run: bool = False,
     track_sleep: float = 0.1,
     *,
     yt: Optional[YTMusic] = None,
 ):
     """
-    Unlike all songs found in a YTMusic playlist (default: Liked Music)
-    in case user prefers porting Spotify 'Liked songs' to YTMusic playlist instead of liking YT videos
+    Unlike all songs in YTMusic, in case user prefers porting Spotify 'Liked songs' to YTMusic playlist instead of liking YT videos
     @@@
     """
     if yt is None:
         yt = get_ytmusic()
     
-    liked_tracks = set()
-    try:
-        # TODO parameterize limit
-        yt_pl = yt.get_playlist(playlistId=pl_id, limit=5000)
-    except Exception as e:
-        print(f"ERROR: Unable to find YTMusic playlist {pl_id}: {e}")
-        print(f"Using 'Liked Songs' playlist by default {YTM_LIKED_SONGS_PL_ID}")
-        yt_pl = YTM_LIKED_SONGS_PL_ID
-    print(f"== Youtube Playlist: {yt_pl['title']}")
-    
-    liked_tracks = yt_pl['tracks']
+    # TODO parameterize limit
+    yt_pl = yt.get_playlist(playlistId="LM", limit=5000)
+    liked_tracks_initial: set = yt_pl['tracks']
 
-    for track in liked_tracks:
-        print(f"Youtube video to unlike:   {track.title} - {track.artist} - {track.album}")
+    print(f"Unliking {len(liked_tracks_initial)} tracks in YTMusic playlist: {yt_pl['title']}")
+    print(f"DEBUG: (Unliking) first track: {liked_tracks_initial[0]}")
+    tracks_rated_count = 0
+    error_count = 0
+
+    for track in liked_tracks_initial:
+        print(f"Youtube video to unlike:   {track['title']} (videoId {track['videoId']})")
 
         if not dry_run:
             exception_sleep = 5
-            for _ in range(10):
-                try:
-                    yt.rate_song(track["videoId"], "INDIFFERENT")
-                except Exception as e:
-                    print(
-                        f"ERROR: (Unliking songs in playlist: {pl_id} {track['videoId']}) {e} in {exception_sleep} seconds"
-                    )
-                    time.sleep(exception_sleep)
-                    exception_sleep *= 2
+            try:
+                res = yt.rate_song(track["videoId"], "INDIFFERENT")
+                print(f"Response: {res['actions'][0]['addToToastAction']['item']['notificationTextRenderer']['successResponseText']['runs']}")
+            except Exception as e:
+                print(f"ERROR: (Unliking song {track['videoId']}) {e} in {exception_sleep} seconds")
+                time.sleep(exception_sleep)
+                exception_sleep *= 2
+                error_count += 1
 
         if track_sleep:
             time.sleep(track_sleep)
 
+    print()
+    liked_tracks_final = yt.get_liked_songs(5000)
+    print(f"Unliked {tracks_rated_count}/{len(liked_tracks_initial)} tracks, encountered {error_count} errors")
+    print(f"BUT!! Real number of liked tracks left: {len(liked_tracks_final['tracks'])}")
 
 def copy_playlist(
     spotify_playlist_id: str,
