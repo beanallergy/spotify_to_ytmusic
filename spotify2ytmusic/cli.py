@@ -191,6 +191,11 @@ def load_liked():
             help="Reverse playlist on load, normally this is not set for liked songs as "
             "they are added in the opposite order from other commands in this program.",
         )
+        parser.add_argument(
+            "ytmusic_playlist_id",
+            type=str,
+            help="ID of the YTMusic playlist to copy to.  If this argument starts with a '+', it is asumed to be the playlist title rather than playlist ID, and if a playlist of that name is not found, it will be created (without the +).  Example: '+My Favorite Blues'.  NOTE: The shell will require you to quote the name if it contains spaces.",
+        )
 
         return parser.parse_args()
 
@@ -202,7 +207,8 @@ def load_liked():
             spotify_encoding=args.spotify_playlists_encoding,
             reverse_playlist=args.reverse_playlist,
         ),
-        None,
+        args.ytmusic_playlist_id,
+        #None,
         args.dry_run,
         args.track_sleep,
         args.algo,

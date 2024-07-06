@@ -376,7 +376,7 @@ def copier(
     duplicate_count = 0
     error_count = 0
 
-    print(f"DEBUG: (Copier) first track: {src_tracks[0]}")
+    print(f"DEBUG: (Copier) first track: {next(src_tracks)}")
 
     for src_track in src_tracks:
         print(f"Spotify:   {src_track.title} - {src_track.artist} - {src_track.album}")
